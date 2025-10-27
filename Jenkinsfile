@@ -2,10 +2,10 @@ pipeline {
     agent any
 
     environment {
-        GHCR_USER = credentials('/git/name')
-        GHCR_TOKEN = credentials('/git/pat/test')
+        GHCR_USER = credentials('gh-user-name')
+        GHCR_TOKEN = credentials('gh-user-pat')
         GHCR_IMAGE = "ghcr.io/MadhuPonnam66/affine"
-        INFRA_REPO = "git@github.com:MadhuPonnam66/infra-repo-affine.git"
+        INFRA_REPO = "git@github.com:MadhuPonnam66/infra-repo-affine"
         INFRA_BRANCH = "main"
     }
 
@@ -58,17 +58,19 @@ pipeline {
         }
     }
 
-    post {
-        always {
+   post {
+    always {
+        script {
             sh 'docker logout ghcr.io || true'
             sh 'docker system prune -af || true'
         }
-        success {
-            echo "✅ Image pushed and infra repo updated to tag: ${IMAGE_TAG}"
-        }
-        failure {
-            echo "❌ Pipeline failed"
-        }
+    }
+    success {
+        echo "✅ Image pushed and infra repo updated to tag: ${IMAGE_TAG}"
+    }
+    failure {
+        echo "❌ Pipeline failed"
     }
 }
+
 
