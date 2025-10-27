@@ -2,10 +2,10 @@ pipeline {
     agent any
 
     environment {
-        GHCR_USER = credentials('gh-user-name')
-        GHCR_TOKEN = credentials('gh-user-pat')
-        GHCR_IMAGE = "ghcr.io/MadhuPonnam66/affine"
-        INFRA_REPO = "git@github.com:MadhuPonnam66/infra-repo-affine"
+        GHCR_USER   = credentials('gh-user-name')
+        GHCR_TOKEN  = credentials('gh-user-pat')
+        GHCR_IMAGE  = "ghcr.io/MadhuPonnam66/affine"
+        INFRA_REPO  = "git@github.com:MadhuPonnam66/infra-repo-affine"
         INFRA_BRANCH = "main"
     }
 
@@ -36,16 +36,13 @@ pipeline {
         stage('Update Infra Repo') {
             steps {
                 script {
-                    // Configuring git identity
                     sh """
                         git config --global user.name "Jenkins CI"
                         git config --global user.email "jenkins@ci.local"
                     """
 
-                    // Cloning infra repo
                     sh "rm -rf infra && git clone -b ${INFRA_BRANCH} ${INFRA_REPO} infra"
-                    
-                    // Updating image tag in deployment YAML
+
                     sh """
                         cd infra
                         sed -i 's#ghcr.io/.*/affine:.*#${GHCR_IMAGE}:${IMAGE_TAG}#' k8s/affine-deployment.yaml
@@ -56,21 +53,21 @@ pipeline {
                 }
             }
         }
-    
+    }
 
-   post {
-    always {
-        script {
-            sh 'docker logout ghcr.io || true'
-            sh 'docker system prune -af || true'
+    post {
+        always {
+            node {
+                sh 'docker logout ghcr.io || true'
+                sh 'docker system prune -af || true'
+            }
+        }
+        success {
+            echo "✅ Image pushed and infra repo updated to tag: ${IMAGE_TAG}"
+        }
+        failure {
+            echo "❌ Pipeline failed"
         }
     }
-    success {
-        echo "✅ Image pushed and infra repo updated to tag: ${IMAGE_TAG}"
-    }
-    failure {
-        echo "❌ Pipeline failed"
-    }
-	}
 }
 
