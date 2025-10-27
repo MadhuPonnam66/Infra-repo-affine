@@ -2,9 +2,9 @@ pipeline {
     agent any
 
     environment {
-        GHCR_USER   = credentials('gh-user-name')
+        GHCR_USER   = "madhuponnam66"
         GHCR_TOKEN  = credentials('gh-user-pat')
-        GHCR_IMAGE  = "ghcr.io/MadhuPonnam66/affine"
+        GHCR_IMAGE  = "ghcr.io/madhuponnam66/affine"
         INFRA_REPO  = "git@github.com:MadhuPonnam66/infra-repo-affine"
         INFRA_BRANCH = "main"
     }
