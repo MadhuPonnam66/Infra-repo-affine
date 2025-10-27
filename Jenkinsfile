@@ -24,7 +24,7 @@ pipeline {
                     env.IMAGE_TAG = tag
 
                     sh """
-                        docker build -t ${GHCR_IMAGE}:${tag} -t ${GHCR_IMAGE}:latest .
+                        docker build -f custom-dockerfile/Dockerfile -t ${GHCR_IMAGE}:${tag} -t ${GHCR_IMAGE}:latest .
                         echo "${GHCR_TOKEN}" | docker login ghcr.io -u "${GHCR_USER}" --password-stdin
                         docker push ${GHCR_IMAGE}:${tag}
                         docker push ${GHCR_IMAGE}:latest
