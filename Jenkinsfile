@@ -57,10 +57,10 @@ pipeline {
 
     post {
         always {
-            node {
+            
                 sh 'docker logout ghcr.io || true'
                 sh 'docker system prune -af || true'
-            }
+            
         }
         success {
             echo "✅ Image pushed and infra repo updated to tag: ${IMAGE_TAG}"
