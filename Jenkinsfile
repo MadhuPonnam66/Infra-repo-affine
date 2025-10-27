@@ -2,18 +2,17 @@ pipeline {
     agent any
 
     environment {
-        GHCR_USER   = "madhuponnam66"
+        GITHUB_USER = 'MadhuPonnam66'      // original case for cloning
+        GHCR_USER   = 'madhuponnam66'      // lowercase for Docker image
         GHCR_TOKEN  = credentials('gh-user-pat')
-        GHCR_IMAGE  = "ghcr.io/MadhuPonnam66/affine"
-        INFRA_REPO  = "git@github.com:MadhuPonnam66/infra-repo-affine"
-        INFRA_BRANCH = "main"
+        REPO_NAME   = 'AFFiNE'
+        DOCKERFILE_PATH = 'AFFiNE/custom-dockerfile/Dockerfile'
     }
 
     stages {
         stage('Checkout Source') {
             steps {
-                git branch: 'main',
-                    url: 'https://github.com/MadhuPonnam66/AFFiNE.git'
+                git branch: 'canary', url: "https://github.com/${GITHUB_USER}/${REPO_NAME}.git"
             }
         }
 
@@ -23,32 +22,15 @@ pipeline {
                     def tag = sh(script: "date +%Y%m%d%H%M%S", returnStdout: true).trim()
                     env.IMAGE_TAG = tag
 
-                    sh """
-                        docker build -f custom-dockerfile/Dockerfile -t ${GHCR_IMAGE}:${tag} -t ${GHCR_IMAGE}:latest .
-                        echo "${GHCR_TOKEN}" | docker login ghcr.io -u "${GHCR_USER}" --password-stdin
-                        docker push ${GHCR_IMAGE}:${tag}
-                        docker push ${GHCR_IMAGE}:latest
-                    """
-                }
-            }
-        }
-
-        stage('Update Infra Repo') {
-            steps {
-                script {
-                    sh """
-                        git config --global user.name "Jenkins CI"
-                        git config --global user.email "jenkins@ci.local"
-                    """
-
-                    sh "rm -rf infra && git clone -b ${INFRA_BRANCH} ${INFRA_REPO} infra"
+                    sh 'pwd && ls -R' // 👈 Debug, you can remove after verifying
 
                     sh """
-                        cd infra
-                        sed -i 's#ghcr.io/.*/affine:.*#${GHCR_IMAGE}:${IMAGE_TAG}#' k8s/affine-deployment.yaml
-                        git add k8s/affine-deployment.yaml
-                        git commit -m "Update Affine image to ${IMAGE_TAG}"
-                        git push origin ${INFRA_BRANCH}
+                        docker build -f ${DOCKERFILE_PATH} \
+                            -t ghcr.io/${GHCR_USER}/affine:${tag} \
+                            -t ghcr.io/${GHCR_USER}/affine:latest .
+                        echo '${GHCR_TOKEN}' | docker login ghcr.io -u '${GHCR_USER}' --password-stdin
+                        docker push ghcr.io/${GHCR_USER}/affine:${tag}
+                        docker push ghcr.io/${GHCR_USER}/affine:latest
                     """
                 }
             }
@@ -57,10 +39,8 @@ pipeline {
 
     post {
         always {
-            
-                sh 'docker logout ghcr.io || true'
-                sh 'docker system prune -af || true'
-            
+            sh 'docker logout ghcr.io || true'
+            sh 'docker system prune -af || true'
         }
         success {
             echo "✅ Image pushed and infra repo updated to tag: ${IMAGE_TAG}"
