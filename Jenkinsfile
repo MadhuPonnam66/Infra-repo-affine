@@ -56,7 +56,7 @@ pipeline {
                 }
             }
         }
-    }
+    
 
    post {
     always {
@@ -71,6 +71,6 @@ pipeline {
     failure {
         echo "❌ Pipeline failed"
     }
+	}
 }
-
 
