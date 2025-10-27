@@ -6,7 +6,7 @@ pipeline {
         GHCR_USER   = 'madhuponnam66'      // lowercase for Docker image
         GHCR_TOKEN  = credentials('gh-user-pat')
         REPO_NAME   = 'AFFiNE'
-        DOCKERFILE_PATH = 'AFFiNE/custom-dockerfile/Dockerfile'
+        DOCKERFILE_PATH = 'custom-dockerfile/Dockerfile'
     }
 
     stages {
